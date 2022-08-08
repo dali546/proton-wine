@@ -108,6 +108,12 @@
 #undef XATTR_ADDITIONAL_OPTIONS
 #include <sys/extattr.h>
 #endif
+#ifdef HAVE_ATTR_XATTR_H
+#undef XATTR_ADDITIONAL_OPTIONS
+#include <attr/xattr.h>
+#elif defined(HAVE_SYS_XATTR_H)
+#include <sys/xattr.h>
+#endif
 #include <time.h>
 #include <unistd.h>
 
@@ -456,6 +462,70 @@ static int xattr_set( const char *path, const char *name, void *value, size_t si
     if (!xattr_valid_namespace( name )) return -1;
     return extattr_set_file( path, EXTATTR_NAMESPACE_USER, &name[XATTR_USER_PREFIX_LEN],
                              value, size );
+#else
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+#ifndef XATTR_USER_PREFIX
+#define XATTR_USER_PREFIX "user."
+#endif
+
+static int xattr_fremove( int filedes, const char *name )
+{
+#if defined(XATTR_ADDITIONAL_OPTIONS)
+    return fremovexattr( filedes, name, 0 );
+#elif defined(HAVE_SYS_XATTR_H) || defined(HAVE_ATTR_XATTR_H)
+    return fremovexattr( filedes, name );
+#else
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+static int xattr_fset( int filedes, const char *name, void *value, size_t size )
+{
+#if defined(XATTR_ADDITIONAL_OPTIONS)
+    return fsetxattr( filedes, name, value, size, 0, 0 );
+#elif defined(HAVE_SYS_XATTR_H) || defined(HAVE_ATTR_XATTR_H)
+    return fsetxattr( filedes, name, value, size, 0 );
+#else
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+static int xattr_get( const char *path, const char *name, void *value, size_t size )
+{
+#if defined(XATTR_ADDITIONAL_OPTIONS)
+    return getxattr( path, name, value, size, 0, 0 );
+#elif defined(HAVE_SYS_XATTR_H) || defined(HAVE_ATTR_XATTR_H)
+    return getxattr( path, name, value, size );
+#else
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+static int xattr_remove( const char *path, const char *name )
+{
+#if defined(XATTR_ADDITIONAL_OPTIONS)
+    return removexattr( path, name, 0 );
+#elif defined(HAVE_SYS_XATTR_H) || defined(HAVE_ATTR_XATTR_H)
+    return removexattr( path, name );
+#else
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+static int xattr_set( const char *path, const char *name, void *value, size_t size )
+{
+#if defined(XATTR_ADDITIONAL_OPTIONS)
+    return setxattr( path, name, value, size, 0, 0 );
+#elif defined(HAVE_SYS_XATTR_H) || defined(HAVE_ATTR_XATTR_H)
+    return setxattr( path, name, value, size, 0 );
 #else
     errno = ENOSYS;
     return -1;
@@ -1559,6 +1629,22 @@ static inline int get_file_xattr( char *hexattr, int attrlen )
     return 0;
 }
 
+/* Match the Samba conventions for storing DOS file attributes */
+#define SAMBA_XATTR_DOS_ATTRIB XATTR_USER_PREFIX "DOSATTRIB"
+/* We are only interested in some attributes, the others have corresponding Unix attributes */
+#define XATTR_ATTRIBS_MASK     (FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM)
+
+/* decode the xattr-stored DOS attributes */
+static inline int get_file_xattr( char *hexattr, int attrlen )
+{
+    if (attrlen > 2 && hexattr[0] == '0' && hexattr[1] == 'x')
+    {
+        hexattr[attrlen] = 0;
+        return strtol( hexattr+2, NULL, 16 ) & XATTR_ATTRIBS_MASK;
+    }
+    return 0;
+}
+
 /* fetch the attributes of a file */
 static inline ULONG get_file_attributes( const struct stat *st )
 {
@@ -1631,6 +1717,39 @@ NTSTATUS fd_set_file_info( int fd, ULONG attr )
     return STATUS_SUCCESS;
 }
 
+/* set the stat info and file attributes for a file (by file descriptor) */
+NTSTATUS fd_set_file_info( int fd, ULONG attr )
+{
+    char hexattr[11];
+    struct stat st;
+
+    if (fstat( fd, &st ) == -1) return errno_to_status( errno );
+    if (attr & FILE_ATTRIBUTE_READONLY)
+    {
+        if (S_ISDIR( st.st_mode))
+            WARN("FILE_ATTRIBUTE_READONLY ignored for directory.\n");
+        else
+            st.st_mode &= ~0222; /* clear write permission bits */
+    }
+    else
+    {
+        /* add write permission only where we already have read permission */
+        st.st_mode |= (0600 | ((st.st_mode & 044) >> 1)) & (~start_umask);
+    }
+    if (fchmod( fd, st.st_mode ) == -1) return errno_to_status( errno );
+    attr &= ~FILE_ATTRIBUTE_NORMAL; /* do not store everything, but keep everything Samba can use */
+    if (attr != 0)
+    {
+        int len;
+
+        len = sprintf( hexattr, "0x%x", attr );
+        xattr_fset( fd, SAMBA_XATTR_DOS_ATTRIB, hexattr, len );
+    }
+    else
+        xattr_fremove( fd, SAMBA_XATTR_DOS_ATTRIB );
+    return STATUS_SUCCESS;
+}
+
 /* get the stat info and file attributes for a file (by name) */
 static int get_file_info( const char *path, struct stat *st, ULONG *attr )
 {
@@ -1662,12 +1781,15 @@ static int get_file_info( const char *path, struct stat *st, ULONG *attr )
         free( parent_path );
     }
     *attr |= get_file_attributes( st );
-    /* convert Unix-style hidden files to a DOS hidden file attribute */
-    if (is_hidden_file( path ))
-        *attr |= FILE_ATTRIBUTE_HIDDEN;
     /* retrieve any stored DOS attributes */
     len = xattr_get( path, SAMBA_XATTR_DOS_ATTRIB, hexattr, sizeof(hexattr)-1 );
-    if (len == -1) return ret;
+    if (len == -1)
+    {
+        /* convert Unix-style hidden files to a DOS hidden file attribute */
+        if (is_hidden_file( path ))
+            *attr |= FILE_ATTRIBUTE_HIDDEN;
+        return ret;
+    }
     *attr |= get_file_xattr( hexattr, len );
     return ret;
 }
@@ -4015,7 +4137,7 @@ NTSTATUS set_file_info( const char *path, ULONG attr )
     /* Note: unix mode already set when called this way */
     attr &= ~FILE_ATTRIBUTE_NORMAL; /* do not store everything, but keep everything Samba can use */
     len = sprintf( hexattr, "0x%x", attr );
-    if (attr != 0)
+    if (attr != 0 || is_hidden_file( path ))
         xattr_set( path, SAMBA_XATTR_DOS_ATTRIB, hexattr, len );
     else
         xattr_remove( path, SAMBA_XATTR_DOS_ATTRIB );
@@ -4054,6 +4176,20 @@ NTSTATUS open_unix_file( HANDLE *handle, const char *unix_name, ACCESS_MASK acce
     return status;
 }
 
+NTSTATUS set_file_info( const char *path, ULONG attr )
+{
+    char hexattr[11];
+    int len;
+
+    /* Note: unix mode already set when called this way */
+    attr &= ~FILE_ATTRIBUTE_NORMAL; /* do not store everything, but keep everything Samba can use */
+    len = sprintf( hexattr, "0x%x", attr );
+    if (attr != 0)
+        xattr_set( path, SAMBA_XATTR_DOS_ATTRIB, hexattr, len );
+    else
+        xattr_remove( path, SAMBA_XATTR_DOS_ATTRIB );
+    return STATUS_SUCCESS;
+}
 
 /******************************************************************************
  *              NtCreateFile   (NTDLL.@)
@@ -4134,6 +4270,11 @@ NTSTATUS WINAPI NtCreateFile( HANDLE *handle, ACCESS_MASK access, OBJECT_ATTRIBU
         case FILE_OVERWRITE_IF:
             io->Information = FILE_OVERWRITTEN;
             break;
+        }
+        if (io->Information == FILE_CREATED)
+        {
+            /* set any DOS extended attributes */
+            set_file_info( unix_name, attributes );
         }
         if (io->Information == FILE_CREATED)
         {

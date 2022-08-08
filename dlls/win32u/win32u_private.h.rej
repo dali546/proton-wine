@@ -1,0 +1,12 @@
+--- dlls/win32u/win32u_private.h
++++ dlls/win32u/win32u_private.h
+@@ -348,6 +348,9 @@ struct unix_funcs
+     const struct vulkan_funcs * (CDECL *get_vulkan_driver)( UINT version );
+     struct opengl_funcs * (CDECL *get_wgl_driver)( HDC hdc, UINT version );
+     BOOL (CDECL *wine_send_input)( HWND hwnd, const INPUT *input, const RAWINPUT *rawinput );
++    LRESULT (CDECL *wine_send_internal_message_timeout)( DWORD dest_pid, DWORD dest_tid,
++                                                         UINT msg, WPARAM wparam, LPARAM lparam,
++                                                         UINT flags, UINT timeout, PDWORD_PTR res_ptr );
+ };
+ 
+ /* clipboard.c */

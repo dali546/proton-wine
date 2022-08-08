@@ -801,6 +801,7 @@ SOURCES = \
 	windows.media.devices.idl \
 	windows.media.idl \
 	windows.media.speechsynthesis.idl \
+	windows.networking.idl \
 	windows.networking.connectivity.idl \
 	windows.security.exchangeactivesyncprovisioning.idl \
 	windows.storage.streams.idl \

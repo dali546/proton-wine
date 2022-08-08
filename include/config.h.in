@@ -56,6 +56,9 @@
 /* Define to 1 if you have the `dlinfo' function. */
 #undef HAVE_DLINFO
 
+/* Define to 1 if you have the <drm.h> header file. */
+#undef HAVE_DRM_H
+
 /* Define to 1 if you have the <EGL/egl.h> header file. */
 #undef HAVE_EGL_EGL_H
 
@@ -91,6 +94,9 @@
 
 /* Define to 1 if you have the `futimesat' function. */
 #undef HAVE_FUTIMESAT
+
+/* Define to 1 if you have the <gbm.h> header file. */
+#undef HAVE_GBM_H
 
 /* Define to 1 if you have the <gcrypt.h> header file. */
 #undef HAVE_GCRYPT_H
@@ -733,6 +739,12 @@
 /* Define to 1 if you have the <valgrind/valgrind.h> header file. */
 #undef HAVE_VALGRIND_VALGRIND_H
 
+/* Define to 1 if you have the <wayland-client.h> header file. */
+#undef HAVE_WAYLAND_CLIENT_H
+
+/* Define to 1 if you have the <wayland-cursor.h> header file. */
+#undef HAVE_WAYLAND_CURSOR_H
+
 /* Define to 1 if you have the <X11/extensions/shape.h> header file. */
 #undef HAVE_X11_EXTENSIONS_SHAPE_H
 
@@ -786,6 +798,9 @@
 
 /* Define if you have the XKB extension */
 #undef HAVE_XKB
+
+/* Define to 1 if you have the <xkbcommon/xkbcommon.h> header file. */
+#undef HAVE_XKBCOMMON_XKBCOMMON_H
 
 /* Define if Xrender has the XRenderCreateLinearGradient function */
 #undef HAVE_XRENDERCREATELINEARGRADIENT

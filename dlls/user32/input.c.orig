@@ -820,7 +820,6 @@ BOOL WINAPI BlockInput(BOOL fBlockIt)
     return FALSE;
 }
 
-
 /***********************************************************************
  *		RegisterHotKey (USER32.@)
  */

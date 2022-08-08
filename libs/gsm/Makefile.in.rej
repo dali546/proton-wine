@@ -1,0 +1,9 @@
+--- libs/gsm/Makefile.in
++++ libs/gsm/Makefile.in
+@@ -1,5 +1,6 @@
+ EXTLIB    = libgsm.a
+ EXTRAINCL = -I$(srcdir)/inc
++EXTRADEFS = -DWAV49
+ 
+ C_SRCS = \
+ 	src/add.c \

@@ -356,6 +356,19 @@ DWORD WINAPI PowerSettingUnregisterNotification(HPOWERNOTIFY handle)
     return ERROR_SUCCESS;
 }
 
+DWORD WINAPI PowerSettingRegisterNotification(const GUID *setting, DWORD flags, HANDLE recipient, PHPOWERNOTIFY handle)
+{
+    FIXME("(%s,0x%08x,%p,%p) stub!\n", debugstr_guid(setting), flags, recipient, handle);
+    *handle = (PHPOWERNOTIFY)0xdeadbeef;
+    return ERROR_SUCCESS;
+}
+
+DWORD WINAPI PowerSettingUnregisterNotification(HPOWERNOTIFY handle)
+{
+    FIXME("(%p) stub!\n", handle);
+    return ERROR_SUCCESS;
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
    switch(fdwReason) {

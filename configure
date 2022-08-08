@@ -709,6 +709,20 @@ DBUS_CFLAGS
 INOTIFY_LIBS
 INOTIFY_CFLAGS
 PCAP_LIBS
+DRM_LIBS
+DRM_CFLAGS
+GBM_LIBS
+GBM_CFLAGS
+XKBCOMMON_LIBS
+XKBCOMMON_CFLAGS
+WAYLAND_CURSOR_LIBS
+WAYLAND_CURSOR_CFLAGS
+WAYLAND_SCANNER
+WAYLAND_PROTOCOLS_DATADIR
+WAYLAND_PROTOCOLS_LIBS
+WAYLAND_PROTOCOLS_CFLAGS
+WAYLAND_CLIENT_LIBS
+WAYLAND_CLIENT_CFLAGS
 X_EXTRA_LIBS
 X_LIBS
 X_PRE_LIBS
@@ -934,6 +948,7 @@ with_xrender
 with_xshape
 with_xshm
 with_xxf86vm
+with_wayland
 with_system_dllpath
 with_wine_tools
 with_wine64
@@ -1750,6 +1765,7 @@ enable_wineps_drv
 enable_winepulse_drv
 enable_wineusb_sys
 enable_winevulkan
+enable_winewayland_drv
 enable_winex11_drv
 enable_winexinput_sys
 enable_wing32
@@ -2013,6 +2029,18 @@ ZLIB_PE_CFLAGS
 ZLIB_PE_LIBS
 XMKMF
 CPP
+WAYLAND_CLIENT_CFLAGS
+WAYLAND_CLIENT_LIBS
+WAYLAND_PROTOCOLS_CFLAGS
+WAYLAND_PROTOCOLS_LIBS
+WAYLAND_CURSOR_CFLAGS
+WAYLAND_CURSOR_LIBS
+XKBCOMMON_CFLAGS
+XKBCOMMON_LIBS
+GBM_CFLAGS
+GBM_LIBS
+DRM_CFLAGS
+DRM_LIBS
 INOTIFY_CFLAGS
 INOTIFY_LIBS
 DBUS_CFLAGS
@@ -2750,6 +2778,7 @@ Optional Packages:
   --without-xshape        do not use the Xshape extension
   --without-xshm          do not use XShm (shared memory extension)
   --without-xxf86vm       do not use XFree video mode extension
+  --with-wayland          build with wayland support
   --with-system-dllpath=PATH
                           load external PE dependencies from colon-separated
                           path PATH
@@ -2815,6 +2844,26 @@ Some influential environment variables:
               Linker flags for the PE zlib, overriding the bundled version
   XMKMF       Path to xmkmf, Makefile generator for X Window System
   CPP         C preprocessor
+  WAYLAND_CLIENT_CFLAGS
+              C compiler flags for wayland-client, overriding pkg-config
+  WAYLAND_CLIENT_LIBS
+              Linker flags for wayland-client, overriding pkg-config
+  WAYLAND_PROTOCOLS_CFLAGS
+              C compiler flags for wayland-protocols, overriding pkg-config
+  WAYLAND_PROTOCOLS_LIBS
+              Linker flags for wayland-protocols, overriding pkg-config
+  WAYLAND_CURSOR_CFLAGS
+              C compiler flags for wayland-cursor, overriding pkg-config
+  WAYLAND_CURSOR_LIBS
+              Linker flags for wayland-cursor, overriding pkg-config
+  XKBCOMMON_CFLAGS
+              C compiler flags for xkbcommon, overriding pkg-config
+  XKBCOMMON_LIBS
+              Linker flags for xkbcommon, overriding pkg-config
+  GBM_CFLAGS  C compiler flags for gbm, overriding pkg-config
+  GBM_LIBS    Linker flags for gbm, overriding pkg-config
+  DRM_CFLAGS  C compiler flags for libdrm, overriding pkg-config
+  DRM_LIBS    Linker flags for libdrm, overriding pkg-config
   INOTIFY_CFLAGS
               C compiler flags for libinotify, overriding pkg-config
   INOTIFY_LIBS
@@ -4796,6 +4845,13 @@ fi
 if test ${with_xxf86vm+y}
 then :
   withval=$with_xxf86vm; if test "x$withval" = "xno"; then ac_cv_header_X11_extensions_xf86vmode_h=no; ac_cv_header_X11_extensions_xf86vmproto_h=no; fi
+fi
+
+
+# Check whether --with-wayland was given.
+if test ${with_wayland+y}
+then :
+  withval=$with_wayland;
 fi
 
 
@@ -15902,6 +15958,619 @@ enable_winex11_drv=${enable_winex11_drv:-no}
 fi
 fi
 
+if test "x$with_wayland" = "xyes"
+then
+    if ${WAYLAND_CLIENT_CFLAGS:+false} :
+then :
+  if test ${PKG_CONFIG+y}
+then :
+  WAYLAND_CLIENT_CFLAGS=`$PKG_CONFIG --cflags wayland-client 2>/dev/null`
+fi
+fi
+
+if ${WAYLAND_CLIENT_LIBS:+false} :
+then :
+  if test ${PKG_CONFIG+y}
+then :
+  WAYLAND_CLIENT_LIBS=`$PKG_CONFIG --libs wayland-client 2>/dev/null`
+fi
+fi
+
+
+printf "%s\n" "$as_me:${as_lineno-$LINENO}: wayland-client cflags: $WAYLAND_CLIENT_CFLAGS" >&5
+printf "%s\n" "$as_me:${as_lineno-$LINENO}: wayland-client libs: $WAYLAND_CLIENT_LIBS" >&5
+ac_save_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $WAYLAND_CLIENT_CFLAGS"
+ac_fn_c_check_header_compile "$LINENO" "wayland-client.h" "ac_cv_header_wayland_client_h" "$ac_includes_default"
+if test "x$ac_cv_header_wayland_client_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_WAYLAND_CLIENT_H 1" >>confdefs.h
+
+fi
+
+         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for wl_display_connect in -lwayland-client" >&5
+printf %s "checking for wl_display_connect in -lwayland-client... " >&6; }
+if test ${ac_cv_lib_wayland_client_wl_display_connect+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lwayland-client $WAYLAND_CLIENT_LIBS $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char wl_display_connect ();
+int
+main (void)
+{
+return wl_display_connect ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_wayland_client_wl_display_connect=yes
+else $as_nop
+  ac_cv_lib_wayland_client_wl_display_connect=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_wayland_client_wl_display_connect" >&5
+printf "%s\n" "$ac_cv_lib_wayland_client_wl_display_connect" >&6; }
+if test "x$ac_cv_lib_wayland_client_wl_display_connect" = xyes
+then :
+  :
+else $as_nop
+  WAYLAND_CLIENT_LIBS=""
+fi
+
+CPPFLAGS=$ac_save_CPPFLAGS
+
+    if ${WAYLAND_PROTOCOLS_CFLAGS:+false} :
+then :
+  if test ${PKG_CONFIG+y}
+then :
+  WAYLAND_PROTOCOLS_CFLAGS=`$PKG_CONFIG --cflags wayland-protocols 2>/dev/null`
+fi
+fi
+
+if ${WAYLAND_PROTOCOLS_LIBS:+false} :
+then :
+  if test ${PKG_CONFIG+y}
+then :
+  WAYLAND_PROTOCOLS_LIBS=`$PKG_CONFIG --libs wayland-protocols 2>/dev/null`
+fi
+fi
+
+
+printf "%s\n" "$as_me:${as_lineno-$LINENO}: wayland-protocols cflags: $WAYLAND_PROTOCOLS_CFLAGS" >&5
+printf "%s\n" "$as_me:${as_lineno-$LINENO}: wayland-protocols libs: $WAYLAND_PROTOCOLS_LIBS" >&5
+ac_save_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $WAYLAND_PROTOCOLS_CFLAGS"
+WAYLAND_PROTOCOLS_DATADIR=`$PKG_CONFIG --atleast-version=1.14 wayland-protocols && $PKG_CONFIG --variable=pkgdatadir wayland-protocols`
+
+CPPFLAGS=$ac_save_CPPFLAGS
+
+    # Extract the first word of "wayland-scanner", so it can be a program name with args.
+set dummy wayland-scanner; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_WAYLAND_SCANNER+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $WAYLAND_SCANNER in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_WAYLAND_SCANNER="$WAYLAND_SCANNER" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_WAYLAND_SCANNER="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_WAYLAND_SCANNER" && ac_cv_path_WAYLAND_SCANNER="`$PKG_CONFIG --variable=wayland_scanner wayland-scanner`"
+  ;;
+esac
+fi
+WAYLAND_SCANNER=$ac_cv_path_WAYLAND_SCANNER
+if test -n "$WAYLAND_SCANNER"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $WAYLAND_SCANNER" >&5
+printf "%s\n" "$WAYLAND_SCANNER" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
+    if ${WAYLAND_CURSOR_CFLAGS:+false} :
+then :
+  if test ${PKG_CONFIG+y}
+then :
+  WAYLAND_CURSOR_CFLAGS=`$PKG_CONFIG --cflags wayland-cursor 2>/dev/null`
+fi
+fi
+
+if ${WAYLAND_CURSOR_LIBS:+false} :
+then :
+  if test ${PKG_CONFIG+y}
+then :
+  WAYLAND_CURSOR_LIBS=`$PKG_CONFIG --libs wayland-cursor 2>/dev/null`
+fi
+fi
+
+
+printf "%s\n" "$as_me:${as_lineno-$LINENO}: wayland-cursor cflags: $WAYLAND_CURSOR_CFLAGS" >&5
+printf "%s\n" "$as_me:${as_lineno-$LINENO}: wayland-cursor libs: $WAYLAND_CURSOR_LIBS" >&5
+ac_save_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $WAYLAND_CURSOR_CFLAGS"
+ac_fn_c_check_header_compile "$LINENO" "wayland-cursor.h" "ac_cv_header_wayland_cursor_h" "$ac_includes_default"
+if test "x$ac_cv_header_wayland_cursor_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_WAYLAND_CURSOR_H 1" >>confdefs.h
+
+fi
+
+         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for wl_cursor_theme_load in -lwayland-cursor" >&5
+printf %s "checking for wl_cursor_theme_load in -lwayland-cursor... " >&6; }
+if test ${ac_cv_lib_wayland_cursor_wl_cursor_theme_load+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lwayland-cursor $WAYLAND_CURSOR_LIBS $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char wl_cursor_theme_load ();
+int
+main (void)
+{
+return wl_cursor_theme_load ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_wayland_cursor_wl_cursor_theme_load=yes
+else $as_nop
+  ac_cv_lib_wayland_cursor_wl_cursor_theme_load=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_wayland_cursor_wl_cursor_theme_load" >&5
+printf "%s\n" "$ac_cv_lib_wayland_cursor_wl_cursor_theme_load" >&6; }
+if test "x$ac_cv_lib_wayland_cursor_wl_cursor_theme_load" = xyes
+then :
+  :
+else $as_nop
+  WAYLAND_CURSOR_LIBS=""
+fi
+
+CPPFLAGS=$ac_save_CPPFLAGS
+
+    if ${XKBCOMMON_CFLAGS:+false} :
+then :
+  if test ${PKG_CONFIG+y}
+then :
+  XKBCOMMON_CFLAGS=`$PKG_CONFIG --cflags xkbcommon 2>/dev/null`
+fi
+fi
+
+if ${XKBCOMMON_LIBS:+false} :
+then :
+  if test ${PKG_CONFIG+y}
+then :
+  XKBCOMMON_LIBS=`$PKG_CONFIG --libs xkbcommon 2>/dev/null`
+fi
+fi
+
+
+printf "%s\n" "$as_me:${as_lineno-$LINENO}: xkbcommon cflags: $XKBCOMMON_CFLAGS" >&5
+printf "%s\n" "$as_me:${as_lineno-$LINENO}: xkbcommon libs: $XKBCOMMON_LIBS" >&5
+ac_save_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $XKBCOMMON_CFLAGS"
+ac_fn_c_check_header_compile "$LINENO" "xkbcommon/xkbcommon.h" "ac_cv_header_xkbcommon_xkbcommon_h" "$ac_includes_default"
+if test "x$ac_cv_header_xkbcommon_xkbcommon_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_XKBCOMMON_XKBCOMMON_H 1" >>confdefs.h
+
+fi
+
+         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for xkb_context_new in -lxkbcommon" >&5
+printf %s "checking for xkb_context_new in -lxkbcommon... " >&6; }
+if test ${ac_cv_lib_xkbcommon_xkb_context_new+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lxkbcommon $XKBCOMMON_LIBS $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char xkb_context_new ();
+int
+main (void)
+{
+return xkb_context_new ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_xkbcommon_xkb_context_new=yes
+else $as_nop
+  ac_cv_lib_xkbcommon_xkb_context_new=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_xkbcommon_xkb_context_new" >&5
+printf "%s\n" "$ac_cv_lib_xkbcommon_xkb_context_new" >&6; }
+if test "x$ac_cv_lib_xkbcommon_xkb_context_new" = xyes
+then :
+  :
+else $as_nop
+  XKBCOMMON_LIBS=""
+fi
+
+CPPFLAGS=$ac_save_CPPFLAGS
+
+    if ${GBM_CFLAGS:+false} :
+then :
+  if test ${PKG_CONFIG+y}
+then :
+  GBM_CFLAGS=`$PKG_CONFIG --cflags gbm 2>/dev/null`
+fi
+fi
+
+if ${GBM_LIBS:+false} :
+then :
+  if test ${PKG_CONFIG+y}
+then :
+  GBM_LIBS=`$PKG_CONFIG --libs gbm 2>/dev/null`
+fi
+fi
+
+
+printf "%s\n" "$as_me:${as_lineno-$LINENO}: gbm cflags: $GBM_CFLAGS" >&5
+printf "%s\n" "$as_me:${as_lineno-$LINENO}: gbm libs: $GBM_LIBS" >&5
+ac_save_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $GBM_CFLAGS"
+ac_fn_c_check_header_compile "$LINENO" "gbm.h" "ac_cv_header_gbm_h" "$ac_includes_default"
+if test "x$ac_cv_header_gbm_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_GBM_H 1" >>confdefs.h
+
+fi
+
+         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gbm_create_device in -lgbm" >&5
+printf %s "checking for gbm_create_device in -lgbm... " >&6; }
+if test ${ac_cv_lib_gbm_gbm_create_device+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgbm $GBM_LIBS $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char gbm_create_device ();
+int
+main (void)
+{
+return gbm_create_device ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_gbm_gbm_create_device=yes
+else $as_nop
+  ac_cv_lib_gbm_gbm_create_device=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gbm_gbm_create_device" >&5
+printf "%s\n" "$ac_cv_lib_gbm_gbm_create_device" >&6; }
+if test "x$ac_cv_lib_gbm_gbm_create_device" = xyes
+then :
+  :
+else $as_nop
+  GBM_LIBS=""
+fi
+
+CPPFLAGS=$ac_save_CPPFLAGS
+
+    if ${DRM_CFLAGS:+false} :
+then :
+  if test ${PKG_CONFIG+y}
+then :
+  DRM_CFLAGS=`$PKG_CONFIG --cflags libdrm 2>/dev/null`
+fi
+fi
+
+if ${DRM_LIBS:+false} :
+then :
+  if test ${PKG_CONFIG+y}
+then :
+  DRM_LIBS=`$PKG_CONFIG --libs libdrm 2>/dev/null`
+fi
+fi
+
+
+printf "%s\n" "$as_me:${as_lineno-$LINENO}: libdrm cflags: $DRM_CFLAGS" >&5
+printf "%s\n" "$as_me:${as_lineno-$LINENO}: libdrm libs: $DRM_LIBS" >&5
+ac_save_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $DRM_CFLAGS"
+ac_fn_c_check_header_compile "$LINENO" "drm.h" "ac_cv_header_drm_h" "$ac_includes_default"
+if test "x$ac_cv_header_drm_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_DRM_H 1" >>confdefs.h
+
+fi
+
+         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for drmPrimeHandleToFD in -ldrm" >&5
+printf %s "checking for drmPrimeHandleToFD in -ldrm... " >&6; }
+if test ${ac_cv_lib_drm_drmPrimeHandleToFD+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldrm $DRM_LIBS $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char drmPrimeHandleToFD ();
+int
+main (void)
+{
+return drmPrimeHandleToFD ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_drm_drmPrimeHandleToFD=yes
+else $as_nop
+  ac_cv_lib_drm_drmPrimeHandleToFD=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_drm_drmPrimeHandleToFD" >&5
+printf "%s\n" "$ac_cv_lib_drm_drmPrimeHandleToFD" >&6; }
+if test "x$ac_cv_lib_drm_drmPrimeHandleToFD" = xyes
+then :
+  :
+else $as_nop
+  DRM_LIBS=""
+fi
+
+CPPFLAGS=$ac_save_CPPFLAGS
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for -lEGL" >&5
+printf %s "checking for -lEGL... " >&6; }
+if test ${ac_cv_lib_soname_EGL+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_soname_save_LIBS=$LIBS
+LIBS="-lEGL  $LIBS"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char eglGetProcAddress ();
+int
+main (void)
+{
+return eglGetProcAddress ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  case "$LIBEXT" in
+    dll) ac_cv_lib_soname_EGL=`$ac_cv_path_LDD conftest.exe | grep "EGL" | sed -e "s/dll.*/dll/"';2,$d'` ;;
+    dylib) ac_cv_lib_soname_EGL=`$OTOOL -L conftest$ac_exeext | grep "libEGL\\.[0-9A-Za-z.]*dylib" | sed -e "s/^.*\/\(libEGL\.[0-9A-Za-z.]*dylib\).*$/\1/"';2,$d'` ;;
+    *) ac_cv_lib_soname_EGL=`$READELF -d conftest$ac_exeext | grep "NEEDED.*libEGL\\.$LIBEXT" | sed -e "s/^.*\\[\\(libEGL\\.$LIBEXT[^	 ]*\\)\\].*$/\1/"';2,$d'`
+       if ${ac_cv_lib_soname_EGL:+false} :
+then :
+  ac_cv_lib_soname_EGL=`$LDD conftest$ac_exeext | grep "libEGL\\.$LIBEXT" | sed -e "s/^.*\(libEGL\.$LIBEXT[^	 ]*\).*$/\1/"';2,$d'`
+fi ;;
+  esac
+else $as_nop
+  ac_cv_lib_soname_EGL=
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+  LIBS=$ac_check_soname_save_LIBS
+fi
+if ${ac_cv_lib_soname_EGL:+false} :
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+printf "%s\n" "not found" >&6; }
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_soname_EGL" >&5
+printf "%s\n" "$ac_cv_lib_soname_EGL" >&6; }
+
+printf "%s\n" "#define SONAME_LIBEGL \"$ac_cv_lib_soname_EGL\"" >>confdefs.h
+
+
+fi
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for -lGL" >&5
+printf %s "checking for -lGL... " >&6; }
+if test ${ac_cv_lib_soname_GL+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_soname_save_LIBS=$LIBS
+LIBS="-lGL  $LIBS"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char glFlush ();
+int
+main (void)
+{
+return glFlush ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  case "$LIBEXT" in
+    dll) ac_cv_lib_soname_GL=`$ac_cv_path_LDD conftest.exe | grep "GL" | sed -e "s/dll.*/dll/"';2,$d'` ;;
+    dylib) ac_cv_lib_soname_GL=`$OTOOL -L conftest$ac_exeext | grep "libGL\\.[0-9A-Za-z.]*dylib" | sed -e "s/^.*\/\(libGL\.[0-9A-Za-z.]*dylib\).*$/\1/"';2,$d'` ;;
+    *) ac_cv_lib_soname_GL=`$READELF -d conftest$ac_exeext | grep "NEEDED.*libGL\\.$LIBEXT" | sed -e "s/^.*\\[\\(libGL\\.$LIBEXT[^	 ]*\\)\\].*$/\1/"';2,$d'`
+       if ${ac_cv_lib_soname_GL:+false} :
+then :
+  ac_cv_lib_soname_GL=`$LDD conftest$ac_exeext | grep "libGL\\.$LIBEXT" | sed -e "s/^.*\(libGL\.$LIBEXT[^	 ]*\).*$/\1/"';2,$d'`
+fi ;;
+  esac
+else $as_nop
+  ac_cv_lib_soname_GL=
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+  LIBS=$ac_check_soname_save_LIBS
+fi
+if ${ac_cv_lib_soname_GL:+false} :
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+printf "%s\n" "not found" >&6; }
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_soname_GL" >&5
+printf "%s\n" "$ac_cv_lib_soname_GL" >&6; }
+
+printf "%s\n" "#define SONAME_LIBGL \"$ac_cv_lib_soname_GL\"" >>confdefs.h
+
+
+fi
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for -lGLESv2" >&5
+printf %s "checking for -lGLESv2... " >&6; }
+if test ${ac_cv_lib_soname_GLESv2+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_soname_save_LIBS=$LIBS
+LIBS="-lGLESv2  $LIBS"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char glFlush ();
+int
+main (void)
+{
+return glFlush ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  case "$LIBEXT" in
+    dll) ac_cv_lib_soname_GLESv2=`$ac_cv_path_LDD conftest.exe | grep "GLESv2" | sed -e "s/dll.*/dll/"';2,$d'` ;;
+    dylib) ac_cv_lib_soname_GLESv2=`$OTOOL -L conftest$ac_exeext | grep "libGLESv2\\.[0-9A-Za-z.]*dylib" | sed -e "s/^.*\/\(libGLESv2\.[0-9A-Za-z.]*dylib\).*$/\1/"';2,$d'` ;;
+    *) ac_cv_lib_soname_GLESv2=`$READELF -d conftest$ac_exeext | grep "NEEDED.*libGLESv2\\.$LIBEXT" | sed -e "s/^.*\\[\\(libGLESv2\\.$LIBEXT[^	 ]*\\)\\].*$/\1/"';2,$d'`
+       if ${ac_cv_lib_soname_GLESv2:+false} :
+then :
+  ac_cv_lib_soname_GLESv2=`$LDD conftest$ac_exeext | grep "libGLESv2\\.$LIBEXT" | sed -e "s/^.*\(libGLESv2\.$LIBEXT[^	 ]*\).*$/\1/"';2,$d'`
+fi ;;
+  esac
+else $as_nop
+  ac_cv_lib_soname_GLESv2=
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+  LIBS=$ac_check_soname_save_LIBS
+fi
+if ${ac_cv_lib_soname_GLESv2:+false} :
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+printf "%s\n" "not found" >&6; }
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_soname_GLESv2" >&5
+printf "%s\n" "$ac_cv_lib_soname_GLESv2" >&6; }
+
+printf "%s\n" "#define SONAME_LIBGLESV2 \"$ac_cv_lib_soname_GLESv2\"" >>confdefs.h
+
+
+fi
+fi
+if test -z "$WAYLAND_CLIENT_LIBS" ||
+                           test -z "$WAYLAND_PROTOCOLS_DATADIR" ||
+                           test -z "$WAYLAND_SCANNER" ||
+                           test -z "$WAYLAND_CURSOR_LIBS" ||
+                           test -z "$XKBCOMMON_LIBS" ||
+                           test -z "$GBM_LIBS" ||
+                           test -z "$DRM_LIBS"
+then :
+  case "x$with_wayland" in
+  x)   as_fn_append wine_notices "|Wayland ${notice_platform}development files not found or not new enough, the Wayland driver won't be supported." ;;
+  xno) ;;
+  *)   as_fn_error $? "Wayland ${notice_platform}development files not found or not new enough, the Wayland driver won't be supported.
+This is an error since --with-wayland was requested." "$LINENO" 5 ;;
+esac
+enable_winewayland_drv=${enable_winewayland_drv:-no}
+fi
+
 if test "$ac_cv_header_CL_cl_h" = "yes"
 then
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for clGetPlatformInfo in -lOpenCL" >&5
@@ -22971,6 +23640,7 @@ wine_fn_config_makefile dlls/wineps16.drv16 enable_win16
 wine_fn_config_makefile dlls/winepulse.drv enable_winepulse_drv
 wine_fn_config_makefile dlls/wineusb.sys enable_wineusb_sys
 wine_fn_config_makefile dlls/winevulkan enable_winevulkan
+wine_fn_config_makefile dlls/winewayland.drv enable_winewayland_drv
 wine_fn_config_makefile dlls/winex11.drv enable_winex11_drv
 wine_fn_config_makefile dlls/winexinput.sys enable_winexinput_sys
 wine_fn_config_makefile dlls/wing.dll16 enable_win16
@@ -24238,6 +24908,20 @@ X_CFLAGS = $X_CFLAGS
 X_PRE_LIBS = $X_PRE_LIBS
 X_LIBS = $X_LIBS
 X_EXTRA_LIBS = $X_EXTRA_LIBS
+WAYLAND_CLIENT_CFLAGS = $WAYLAND_CLIENT_CFLAGS
+WAYLAND_CLIENT_LIBS = $WAYLAND_CLIENT_LIBS
+WAYLAND_PROTOCOLS_CFLAGS = $WAYLAND_PROTOCOLS_CFLAGS
+WAYLAND_PROTOCOLS_LIBS = $WAYLAND_PROTOCOLS_LIBS
+WAYLAND_PROTOCOLS_DATADIR = $WAYLAND_PROTOCOLS_DATADIR
+WAYLAND_SCANNER = $WAYLAND_SCANNER
+WAYLAND_CURSOR_CFLAGS = $WAYLAND_CURSOR_CFLAGS
+WAYLAND_CURSOR_LIBS = $WAYLAND_CURSOR_LIBS
+XKBCOMMON_CFLAGS = $XKBCOMMON_CFLAGS
+XKBCOMMON_LIBS = $XKBCOMMON_LIBS
+GBM_CFLAGS = $GBM_CFLAGS
+GBM_LIBS = $GBM_LIBS
+DRM_CFLAGS = $DRM_CFLAGS
+DRM_LIBS = $DRM_LIBS
 PCAP_LIBS = $PCAP_LIBS
 INOTIFY_CFLAGS = $INOTIFY_CFLAGS
 INOTIFY_LIBS = $INOTIFY_LIBS

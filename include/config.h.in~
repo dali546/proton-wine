@@ -25,6 +25,9 @@
 /* Define to 1 if you have the <asm/user.h> header file. */
 #undef HAVE_ASM_USER_H
 
+/* Define to 1 if you have the <attr/xattr.h> header file. */
+#undef HAVE_ATTR_XATTR_H
+
 /* Define to 1 if you have the <capi20.h> header file. */
 #undef HAVE_CAPI20_H
 
@@ -52,6 +55,9 @@
 
 /* Define to 1 if you have the `dlinfo' function. */
 #undef HAVE_DLINFO
+
+/* Define to 1 if you have the <drm.h> header file. */
+#undef HAVE_DRM_H
 
 /* Define to 1 if you have the <EGL/egl.h> header file. */
 #undef HAVE_EGL_EGL_H
@@ -91,6 +97,9 @@
 
 /* Define to 1 if you have the <gcrypt.h> header file. */
 #undef HAVE_GCRYPT_H
+
+/* Define to 1 if you have the <gbm.h> header file. */
+#undef HAVE_GBM_H
 
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO
@@ -598,6 +607,9 @@
 /* Define to 1 if you have the <sys/event.h> header file. */
 #undef HAVE_SYS_EVENT_H
 
+/* Define to 1 if you have the <sys/extattr.h> header file. */
+#undef HAVE_SYS_EXTATTR_H
+
 /* Define to 1 if you have the <sys/filio.h> header file. */
 #undef HAVE_SYS_FILIO_H
 
@@ -703,6 +715,9 @@
 /* Define to 1 if you have the <sys/vnode.h> header file. */
 #undef HAVE_SYS_VNODE_H
 
+/* Define to 1 if you have the <sys/xattr.h> header file. */
+#undef HAVE_SYS_XATTR_H
+
 /* Define to 1 if you have the `tcdrain' function. */
 #undef HAVE_TCDRAIN
 
@@ -723,6 +738,12 @@
 
 /* Define to 1 if you have the <valgrind/valgrind.h> header file. */
 #undef HAVE_VALGRIND_VALGRIND_H
+
+/* Define to 1 if you have the <wayland-client.h> header file. */
+#undef HAVE_WAYLAND_CLIENT_H
+
+/* Define to 1 if you have the <wayland-cursor.h> header file. */
+#undef HAVE_WAYLAND_CURSOR_H
 
 /* Define to 1 if you have the <X11/extensions/shape.h> header file. */
 #undef HAVE_X11_EXTENSIONS_SHAPE_H
@@ -777,6 +798,9 @@
 
 /* Define if you have the XKB extension */
 #undef HAVE_XKB
+
+/* Define to 1 if you have the <xkbcommon/xkbcommon.h> header file. */
+#undef HAVE_XKBCOMMON_XKBCOMMON_H
 
 /* Define if Xrender has the XRenderCreateLinearGradient function */
 #undef HAVE_XRENDERCREATELINEARGRADIENT
@@ -923,6 +947,9 @@
    required in a freestanding environment). This macro is provided for
    backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
+
+/* Define if xattr functions take additional arguments (Mac OS X) */
+#undef XATTR_ADDITIONAL_OPTIONS
 
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING

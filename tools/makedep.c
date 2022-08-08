@@ -165,6 +165,7 @@ static const char *msgfmt;
 static const char *ln_s;
 static const char *sed_cmd;
 static const char *delay_load_flag;
+static const char *wayland_scanner;
 
 struct makefile
 {
@@ -496,6 +497,15 @@ static char *replace_filename( const char *path, const char *name )
     return ret;
 }
 
+/*******************************************************************
+ *         get_filename
+ */
+static char *get_filename( const char *name )
+{
+    char *filename = strrchr( name, '/' );
+    if (!filename) return strdup( name );
+    return strdup( filename + 1 );
+}
 
 /*******************************************************************
  *         replace_substr
@@ -1333,6 +1343,9 @@ static struct file *open_include_file( const struct makefile *make, struct incl_
         return file;
     }
 
+    /* TODO: check for corresponding wayland protocol .xml file */
+    if (strendswith( pFile->name, "-client-protocol.h" )) return NULL;
+
     /* check for extra targets */
     if (strarray_exists( &make->extra_targets, pFile->name ))
     {
@@ -1823,6 +1836,23 @@ static void add_generated_sources( struct makefile *make )
             char *obj = replace_extension( source->name, ".spec", "" );
             strarray_addall_uniq( &make->extra_imports,
                                   get_expanded_file_local_var( make, obj, "IMPORTS" ));
+        }
+        if (strendswith( source->name, ".xml" ))
+        {
+            char *filename = get_filename( source->name );
+            char *code_filename = replace_extension ( filename , ".xml", "-protocol.c" );
+            char *header_filename = replace_extension ( filename , ".xml", "-client-protocol.h" );
+
+            file = add_generated_source( make, code_filename, NULL );
+            file->file->flags |= FLAG_C_UNIX;
+            file->use_msvcrt = 0;
+            file = add_generated_source( make, header_filename, NULL );
+            file->file->flags |= FLAG_C_UNIX;
+            file->use_msvcrt = 0;
+
+            free( filename );
+            free( code_filename );
+            free( header_filename );
         }
     }
     if (make->testdll)
@@ -2950,6 +2980,15 @@ static void output_source_spec( struct makefile *make, struct incl_file *source,
     output( "\n" );
 }
 
+static void output_source_xml( struct makefile *make, struct incl_file *source, const char *obj )
+{
+    char *base = get_filename( obj );
+    output( "%s-protocol.c: %s\n", obj_dir_path( make, base ), source->filename );
+    output( "\t%s%s private-code $< $@\n", cmd_prefix( "WAYLAND_SCANNER" ), wayland_scanner );
+    output( "%s-client-protocol.h: %s\n", obj_dir_path( make, base ), source->filename );
+    output( "\t%s%s client-header $< $@\n", cmd_prefix( "WAYLAND_SCANNER" ), wayland_scanner);
+    free( base );
+}
 
 /*******************************************************************
  *         output_source_default
@@ -3072,6 +3111,7 @@ static const struct
     { "in", output_source_in },
     { "x", output_source_x },
     { "spec", output_source_spec },
+    { "xml", output_source_xml },
     { NULL, output_source_default }
 };
 
@@ -4007,6 +4047,7 @@ static void output_silent_rules(void)
         "MSG",
         "SED",
         "TEST",
+        "WAYLAND_SCANNER",
         "WIDL",
         "WMC",
         "WRC"
@@ -4105,6 +4146,7 @@ static void load_sources( struct makefile *make )
         "IN_SRCS",
         "PO_SRCS",
         "MANPAGES",
+        "WAYLAND_PROTOCOL_SRCS",
         NULL
     };
     const char **var;
@@ -4340,6 +4382,7 @@ int main( int argc, char *argv[] )
     msgfmt             = get_expanded_make_variable( top_makefile, "MSGFMT" );
     sed_cmd            = get_expanded_make_variable( top_makefile, "SED_CMD" );
     ln_s               = get_expanded_make_variable( top_makefile, "LN_S" );
+    wayland_scanner    = get_expanded_make_variable( top_makefile, "WAYLAND_SCANNER" );
 
     if (root_src_dir && !strcmp( root_src_dir, "." )) root_src_dir = NULL;
     if (tools_dir && !strcmp( tools_dir, "." )) tools_dir = NULL;

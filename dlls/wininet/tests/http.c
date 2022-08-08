@@ -2121,6 +2121,22 @@ static const char okmsg_cookie[] =
 "Set-Cookie: testcookie=testvalue\r\n"
 "\r\n";
 
+static const char okmsg_cookie_path[] =
+"HTTP/1.1 200 OK\r\n"
+"Date: Mon, 01 Dec 2008 13:44:34 GMT\r\n"
+"Server: winetest\r\n"
+"Content-Length: 0\r\n"
+"Set-Cookie: subcookie2=data; path=/test_cookie_set_path\r\n"
+"\r\n";
+
+static const char okmsg_cookie[] =
+"HTTP/1.1 200 OK\r\n"
+"Date: Mon, 01 Dec 2008 13:44:34 GMT\r\n"
+"Server: winetest\r\n"
+"Content-Length: 0\r\n"
+"Set-Cookie: testcookie=testvalue\r\n"
+"\r\n";
+
 static const char notokmsg[] =
 "HTTP/1.1 400 Bad Request\r\n"
 "Server: winetest\r\n"
@@ -2539,6 +2555,51 @@ static DWORD CALLBACK server_thread(LPVOID param)
                 send(c, okmsg201, sizeof okmsg-1, 0);
             else
                 send(c, noauthmsg, sizeof noauthmsg-1, 0);
+        }
+        if (strstr(buffer, "/test_cookie_path1"))
+        {
+            if (strstr(buffer, "subcookie=data"))
+                 send(c, okmsg, sizeof okmsg-1, 0);
+             else
+                 send(c, notokmsg, sizeof notokmsg-1, 0);
+        }
+        if (strstr(buffer, "/test_cookie_path2"))
+        {
+            if (strstr(buffer, "subcookie2=data"))
+                 send(c, okmsg, sizeof okmsg-1, 0);
+             else
+                 send(c, notokmsg, sizeof notokmsg-1, 0);
+        }
+        if (strstr(buffer, "/test_cookie_set_path"))
+        {
+            send(c, okmsg_cookie_path, sizeof okmsg_cookie_path-1, 0);
+        }
+        if (strstr(buffer, "/test_cookie_merge"))
+        {
+            if (strstr(buffer, "subcookie=data") &&
+                !strstr(buffer, "manual_cookie=test"))
+                 send(c, okmsg, sizeof okmsg-1, 0);
+             else
+                 send(c, notokmsg, sizeof notokmsg-1, 0);
+        }
+        if (strstr(buffer, "/test_cookie_set_host_override"))
+        {
+            send(c, okmsg_cookie, sizeof okmsg_cookie-1, 0);
+        }
+        if (strstr(buffer, "/test_cookie_check_host_override"))
+        {
+            if (strstr(buffer, "Cookie:") && strstr(buffer, "testcookie=testvalue"))
+                send(c, okmsg, sizeof okmsg-1, 0);
+            else
+                send(c, notokmsg, sizeof notokmsg-1, 0);
+        }
+        if (strstr(buffer, "/test_cookie_check_different_host"))
+        {
+            if (!strstr(buffer, "foo") &&
+                strstr(buffer, "cookie=biscuit"))
+                send(c, okmsg, sizeof okmsg-1, 0);
+            else
+                send(c, notokmsg, sizeof notokmsg-1, 0);
         }
         if (strstr(buffer, "/test_cookie_path1"))
         {
@@ -3377,6 +3438,74 @@ static void test_header_override(int port)
     ok(ret, "HttpSendRequest failed\n");
 
     test_status_code(req, 200);
+
+    InternetCloseHandle(req);
+    InternetSetCookieA("http://test.local", "foo", "bar");
+    req = HttpOpenRequestA(con, NULL, "/test_cookie_check_different_host", NULL, NULL, NULL, INTERNET_FLAG_KEEP_CONNECTION, 0);
+    ok(req != NULL, "HttpOpenRequest failed\n");
+
+    ret = HttpSendRequestA(req, NULL, 0, NULL, 0);
+    ok(ret, "HttpSendRequest failed\n");
+
+    test_status_code(req, 200);
+
+    InternetCloseHandle(req);
+    req = HttpOpenRequestA(con, NULL, "/test_cookie_check_different_host", NULL, NULL, NULL, INTERNET_FLAG_KEEP_CONNECTION, 0);
+    ok(req != NULL, "HttpOpenRequest failed\n");
+
+    ret = HttpAddRequestHeadersA(req, host_header_override, ~0u, HTTP_ADDREQ_FLAG_ADD);
+    ok(ret, "HttpAddRequestHeaders failed\n");
+
+    ret = HttpSendRequestA(req, NULL, 0, NULL, 0);
+    ok(ret, "HttpSendRequest failed\n");
+
+    test_status_code(req, 200);
+
+    InternetCloseHandle(req);
+    InternetSetCookieA("http://localhost", "cookie", "biscuit");
+    req = HttpOpenRequestA(con, NULL, "/testC", NULL, NULL, NULL, INTERNET_FLAG_KEEP_CONNECTION, 0);
+    ok(req != NULL, "HttpOpenRequest failed\n");
+
+    ret = HttpAddRequestHeadersA(req, host_header_override, ~0u, HTTP_ADDREQ_FLAG_ADD);
+    ok(ret, "HttpAddRequestHeaders failed\n");
+
+    ret = HttpSendRequestA(req, NULL, 0, NULL, 0);
+    ok(ret, "HttpSendRequest failed\n");
+
+    test_status_code(req, 200);
+
+    InternetCloseHandle(req);
+    req = HttpOpenRequestA(con, NULL, "/test_cookie_set_host_override", NULL, NULL, NULL, INTERNET_FLAG_KEEP_CONNECTION, 0);
+    ok(req != NULL, "HttpOpenRequest failed\n");
+
+    ret = HttpAddRequestHeadersA(req, host_header_override, ~0u, HTTP_ADDREQ_FLAG_ADD);
+    ok(ret, "HttpAddRequestHeaders failed\n");
+
+    ret = HttpSendRequestA(req, NULL, 0, NULL, 0);
+    ok(ret, "HttpSendRequest failed\n");
+
+    test_status_code(req, 200);
+
+    InternetCloseHandle(req);
+    req = HttpOpenRequestA(con, NULL, "/test_cookie_check_host_override", NULL, NULL, NULL, INTERNET_FLAG_KEEP_CONNECTION, 0);
+    ok(req != NULL, "HttpOpenRequest failed\n");
+
+    ret = HttpAddRequestHeadersA(req, host_header_override, ~0u, HTTP_ADDREQ_FLAG_ADD);
+    ok(ret, "HttpAddRequestHeaders failed\n");
+
+    ret = HttpSendRequestA(req, NULL, 0, NULL, 0);
+    ok(ret, "HttpSendRequest failed\n");
+
+    test_status_code_todo(req, 200);
+
+    InternetCloseHandle(req);
+    req = HttpOpenRequestA(con, NULL, "/test_cookie_check_host_override", NULL, NULL, NULL, INTERNET_FLAG_KEEP_CONNECTION, 0);
+    ok(req != NULL, "HttpOpenRequest failed\n");
+
+    ret = HttpSendRequestA(req, NULL, 0, NULL, 0);
+    ok(ret, "HttpSendRequest failed\n");
+
+    test_status_code_todo(req, 200);
 
     InternetCloseHandle(req);
     InternetSetCookieA("http://test.local", "foo", "bar");

@@ -1,0 +1,30 @@
+--- dlls/powrprof/powrprof.spec
++++ dlls/powrprof/powrprof.spec
+@@ -18,6 +18,7 @@
+ @ stdcall PowerReadDCValue (ptr ptr ptr ptr ptr ptr ptr)
+ @ stdcall PowerReadFriendlyName (ptr ptr ptr ptr ptr ptr)
+ @ stdcall PowerRegisterSuspendResumeNotification(long ptr ptr)
++@ stdcall PowerUnregisterSuspendResumeNotification(ptr)
+ @ stdcall ReadGlobalPwrPolicy (ptr)
+ @ stdcall ReadProcessorPwrScheme (long ptr)
+ @ stdcall ReadPwrScheme (long ptr)
+--- dlls/powrprof/powrprof.spec
++++ dlls/powrprof/powrprof.spec
+@@ -19,6 +19,7 @@
+ @ stdcall PowerReadFriendlyName (ptr ptr ptr ptr ptr ptr)
+ @ stdcall PowerRegisterSuspendResumeNotification(long ptr ptr)
+ @ stdcall PowerUnregisterSuspendResumeNotification(ptr)
++@ stdcall PowerSettingRegisterNotification(ptr long ptr ptr)
+ @ stdcall ReadGlobalPwrPolicy (ptr)
+ @ stdcall ReadProcessorPwrScheme (long ptr)
+ @ stdcall ReadPwrScheme (long ptr)
+--- dlls/powrprof/powrprof.spec
++++ dlls/powrprof/powrprof.spec
+@@ -20,6 +20,7 @@
+ @ stdcall PowerRegisterSuspendResumeNotification(long ptr ptr)
+ @ stdcall PowerUnregisterSuspendResumeNotification(ptr)
+ @ stdcall PowerSettingRegisterNotification(ptr long ptr ptr)
++@ stdcall PowerSettingUnregisterNotification(ptr)
+ @ stdcall ReadGlobalPwrPolicy (ptr)
+ @ stdcall ReadProcessorPwrScheme (long ptr)
+ @ stdcall ReadPwrScheme (long ptr)

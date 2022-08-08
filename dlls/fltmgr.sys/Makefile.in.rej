@@ -1,0 +1,8 @@
+--- dlls/fltmgr.sys/Makefile.in
++++ dlls/fltmgr.sys/Makefile.in
+@@ -1,4 +1,5 @@
+ MODULE    = fltmgr.sys
++IMPORTLIB = fltmgr
+ EXTRADLLFLAGS = -Wl,--subsystem,native
+ IMPORTS = ntoskrnl
+ 

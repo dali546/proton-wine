@@ -734,7 +734,6 @@ struct windrv_physdev
     struct gdi_physdev     dev;
     struct dibdrv_physdev *dibdrv;
     struct window_surface *surface;
-    DWORD                  start_ticks;
 };
 
 static const struct gdi_dc_funcs window_driver;

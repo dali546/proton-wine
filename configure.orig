@@ -922,6 +922,7 @@ with_usb
 with_v4l2
 with_vkd3d
 with_vulkan
+with_xattr
 with_xcomposite
 with_xcursor
 with_xfixes
@@ -1731,6 +1732,7 @@ enable_windows_globalization
 enable_windows_media_devices
 enable_windows_media_speech
 enable_windows_networking
+enable_windows_networking_connectivity
 enable_windowscodecs
 enable_windowscodecsext
 enable_winealsa_drv
@@ -1947,6 +1949,7 @@ enable_wineconsole
 enable_winedbg
 enable_winedevice
 enable_winefile
+enable_winemenubuilder
 enable_winemine
 enable_winemsibuilder
 enable_winepath
@@ -2735,6 +2738,7 @@ Optional Packages:
   --without-v4l2          do not use v4l2 (video capture)
   --without-vkd3d         do not use vkd3d (Direct3D 12 support)
   --without-vulkan        do not use Vulkan
+  --without-xattr         do not use xattr (security attributes support)
   --without-xcomposite    do not use the Xcomposite extension
   --without-xcursor       do not use the Xcursor extension
   --without-xfixes        do not use Xfixes for clipboard change notifications
@@ -4708,6 +4712,13 @@ fi
 if test ${with_vulkan+y}
 then :
   withval=$with_vulkan;
+fi
+
+
+# Check whether --with-xattr was given.
+if test ${with_xattr+y}
+then :
+  withval=$with_xattr;
 fi
 
 
@@ -9445,6 +9456,65 @@ then :
 
 fi
 
+
+if test "x$with_xattr" != "xno"
+then
+           for ac_header in attr/xattr.h sys/extattr.h
+do :
+  as_ac_Header=`printf "%s\n" "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"
+then :
+  cat >>confdefs.h <<_ACEOF
+#define `printf "%s\n" "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ HAVE_XATTR=1
+fi
+
+done
+           for ac_header in sys/xattr.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "sys/xattr.h" "ac_cv_header_sys_xattr_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_xattr_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_SYS_XATTR_H 1" >>confdefs.h
+ HAVE_XATTR=1
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/xattr.h>
+int
+main (void)
+{
+getxattr("", "", "", 0, 0, 0);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+
+printf "%s\n" "#define XATTR_ADDITIONAL_OPTIONS 1" >>confdefs.h
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+done
+fi
+if test "x$with_xattr" = "xyes"
+then
+    if test "x$HAVE_XATTR" = "x"
+then :
+  case "x$with_xattr" in
+  xno) ;;
+  *)   as_fn_error $? "xattr ${notice_platform}development files \
+not found. Wine will be built without extended attribute support, which probably isn't what you \
+want. You will need to install ${notice_platform}development packages of libattr at the very least.
+Use the --without-xattr option if you really want this." "$LINENO" 5 ;;
+esac
+
+fi
+fi
 
 
 DLLFLAGS=""
@@ -22880,6 +22950,7 @@ wine_fn_config_makefile dlls/windows.media.devices/tests enable_tests
 wine_fn_config_makefile dlls/windows.media.speech enable_windows_media_speech
 wine_fn_config_makefile dlls/windows.media.speech/tests enable_tests
 wine_fn_config_makefile dlls/windows.networking enable_windows_networking
+wine_fn_config_makefile dlls/windows.networking.connectivity enable_windows_networking_connectivity
 wine_fn_config_makefile dlls/windowscodecs enable_windowscodecs
 wine_fn_config_makefile dlls/windowscodecs/tests enable_tests
 wine_fn_config_makefile dlls/windowscodecsext enable_windowscodecsext
@@ -23135,6 +23206,7 @@ wine_fn_config_makefile programs/wineconsole enable_wineconsole
 wine_fn_config_makefile programs/winedbg enable_winedbg
 wine_fn_config_makefile programs/winedevice enable_winedevice
 wine_fn_config_makefile programs/winefile enable_winefile
+wine_fn_config_makefile programs/winemenubuilder enable_winemenubuilder
 wine_fn_config_makefile programs/winemine enable_winemine
 wine_fn_config_makefile programs/winemsibuilder enable_winemsibuilder
 wine_fn_config_makefile programs/winepath enable_winepath
